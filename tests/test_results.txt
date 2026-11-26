@@ -1,0 +1,22 @@
+Nand to Tetris Capstone - local automated test run
+Student: Abhinav Kumar
+Roll No.: 2501350050
+Run: python -m unittest discover -s tests -v
+
+Result: 12 tests passed, 0 failed.
+
+Covered:
+- Hack A- and C-instruction encodings, including the six corrected comp mappings
+- Comp mnemonics and destination ordering
+- Label resolution and variable allocation
+- K=50 duplicate-label warning (including source line)
+- Predefined-symbol collision warning
+- Invalid instruction and out-of-range address handling
+- .hack output generation
+- 48-pixel x 20-row rectangle at screen row 50 while a key is pressed
+- Rectangle clears after key release
+
+Scope limitation:
+These are local Python tests and a lightweight instruction-level reference emulator.
+They do not replace CPU.tst, Memory.tst, ComputerAdd.tst, ComputerMax.tst,
+ComputerRect.tst, or the required official CPU Emulator screenshot.

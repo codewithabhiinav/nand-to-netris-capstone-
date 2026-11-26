@@ -1,0 +1,62 @@
+// Hack CPU for Nand to Tetris Capstone (student: Abhinav Kumar).
+// Uses the standard built-in ARegister, DRegister, ALU and PC chips.
+CHIP CPU {
+    IN  inM[16],
+        instruction[16],
+        reset;
+
+    OUT outM[16],
+        writeM,
+        addressM[15],
+        pc[15];
+
+    PARTS:
+    // Decode A-instruction vs C-instruction and destination A.
+    Not(in=instruction[15], out=isAInstruction);
+    And(a=instruction[15], b=instruction[5], out=loadAFromC);
+    Or(a=isAInstruction, b=loadAFromC, out=loadA);
+
+    // A-instruction loads its value; C-instruction loads the ALU result.
+    Mux16(a=instruction, b=outM, sel=loadAFromC, out=aInput);
+    ARegister(in=aInput, load=loadA, out=aRegOut, out[0..14]=addressM);
+
+    // The ALU's second input is A or M, selected by the a-bit.
+    And(a=instruction[15], b=instruction[12], out=useM);
+    Mux16(a=aRegOut, b=inM, sel=useM, out=aluY);
+
+    // Destination D (C-instruction only).
+    And(a=instruction[15], b=instruction[4], out=loadD);
+    DRegister(in=outM, load=loadD, out=dRegOut);
+
+    // One ALU output drives the CPU output and any destination registers.
+    ALU(
+        x=dRegOut,
+        y=aluY,
+        zx=instruction[11],
+        nx=instruction[10],
+        zy=instruction[9],
+        ny=instruction[8],
+        f=instruction[7],
+        no=instruction[6],
+        out=outM,
+        zr=zr,
+        ng=ng
+    );
+
+    // Write to memory only for a C-instruction with destination M.
+    And(a=instruction[15], b=instruction[3], out=writeM);
+
+    // Evaluate the signed jump condition.
+    Not(in=zr, out=notZero);
+    Not(in=ng, out=notNegative);
+    And(a=instruction[2], b=ng, out=jumpLT);
+    And(a=instruction[1], b=zr, out=jumpEQ);
+    And(a=notZero, b=notNegative, out=isPositive);
+    And(a=instruction[0], b=isPositive, out=jumpGT);
+    Or(a=jumpLT, b=jumpEQ, out=jumpLEorEQ);
+    Or(a=jumpLEorEQ, b=jumpGT, out=jumpCondition);
+    And(a=instruction[15], b=jumpCondition, out=loadPC);
+    Not(in=loadPC, out=incPC);
+
+    PC(in=aRegOut, load=loadPC, inc=incPC, reset=reset, out[0..14]=pc);
+}

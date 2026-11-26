@@ -1,0 +1,11 @@
+// Top-level Hack computer: instruction memory + CPU + data memory.
+// ROM32K is the standard built-in instruction-memory chip.
+CHIP Computer {
+    IN reset;
+
+    PARTS:
+    ROM32K(address=pc, out=instruction);
+    CPU(inM=inM, instruction=instruction, reset=reset,
+        outM=outM, writeM=writeM, addressM=addressM, pc=pc);
+    Memory(in=outM, load=writeM, address=addressM, out=inM);
+}
